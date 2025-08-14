@@ -22,19 +22,13 @@ pipeline {
     }
     stage('Run Container') {
       steps {
-        // Detener contenedor existente si existe
-        bat 'docker rm -f demo-ci-cd || exit 0'
+        // Limpiar contenedor anterior
+        bat 'docker rm -f demo-ci-cd || echo "No hay contenedor anterior"'
         
-        // Verificar que el puerto esté libre
-        bat 'netstat -ano | findstr :%CONTAINER_PORT% || echo "Puerto %CONTAINER_PORT% disponible"'
-        
-        // Ejecutar contenedor en puerto alternativo
+        // Ejecutar nuevo contenedor
         bat 'docker run -d --name demo-ci-cd -p %CONTAINER_PORT%:8080 %IMAGE_NAME%'
         
-        // Esperar un momento para que la aplicación se inicie
-        bat 'timeout /t 10 /nobreak'
-        
-        // Verificar que el contenedor esté ejecutándose
+        // Verificar estado
         bat 'docker ps | findstr demo-ci-cd'
       }
     }
@@ -50,8 +44,7 @@ pipeline {
     }
     failure {
       echo '❌ Pipeline falló!'
-      // Mostrar logs del contenedor si existe
-      bat 'docker logs demo-ci-cd || echo "No se pudieron obtener logs"'
+      bat 'docker ps -a | findstr demo-ci-cd || echo "No hay contenedores"'
     }
   }
 }
