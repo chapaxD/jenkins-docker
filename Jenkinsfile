@@ -22,22 +22,20 @@ pipeline {
     }
     stage('Run Container') {
       steps {
-        script {
-          // Detener contenedor existente si existe
-          bat 'docker rm -f demo-ci-cd || exit 0'
-          
-          // Verificar que el puerto esté libre
-          bat 'netstat -ano | findstr :%CONTAINER_PORT% || echo "Puerto %CONTAINER_PORT% disponible"'
-          
-          // Ejecutar contenedor en puerto alternativo
-          bat 'docker run -d --name demo-ci-cd -p %CONTAINER_PORT%:8080 %IMAGE_NAME%'
-          
-          // Esperar un momento para que la aplicación se inicie
-          sleep 10
-          
-          // Verificar que el contenedor esté ejecutándose
-          bat 'docker ps | findstr demo-ci-cd'
-        }
+        // Detener contenedor existente si existe
+        bat 'docker rm -f demo-ci-cd || exit 0'
+        
+        // Verificar que el puerto esté libre
+        bat 'netstat -ano | findstr :%CONTAINER_PORT% || echo "Puerto %CONTAINER_PORT% disponible"'
+        
+        // Ejecutar contenedor en puerto alternativo
+        bat 'docker run -d --name demo-ci-cd -p %CONTAINER_PORT%:8080 %IMAGE_NAME%'
+        
+        // Esperar un momento para que la aplicación se inicie
+        bat 'timeout /t 10 /nobreak'
+        
+        // Verificar que el contenedor esté ejecutándose
+        bat 'docker ps | findstr demo-ci-cd'
       }
     }
   }
