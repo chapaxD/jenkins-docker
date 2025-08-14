@@ -1,0 +1,42 @@
+# Java
+*.class
+*.jar
+*.war
+*.ear
+
+# Maven
+/target/
+!.mvn/wrapper/maven-wrapper.jar
+
+# Eclipse
+*.log
+*.tmp
+*.bak
+*.swp
+*~.nib
+.local.properties
+.settings/
+.project
+.classpath
+
+# IntelliJ
+*.iml
+.idea/
+out/
+
+# VS Code
+.vscode/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Docker
+*.pid
+
+# Jenkins
+*.lastUpdated
+
+# Others
+node_modules/
+.env
