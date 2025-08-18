@@ -15,12 +15,12 @@ pipeline {
         bat 'mvn -B clean package'
       }
     }
-    // Subir artifact a Github Packages
-    stage('Publish Artifact') {
-      steps {
-        bat 'mvn -B -Pgithub "-Dgpr.owner=chapaxD" "-Dgpr.repo=spring-docker" -DskipTests deploy'
-      }
-    }
+    // // Subir artifact a Github Packages
+    // stage('Publish Artifact') {
+    //   steps {
+    //     bat 'mvn -B -Pgithub "-Dgpr.owner=chapaxD" "-Dgpr.repo=spring-docker" -DskipTests deploy'
+    //   }
+    // }
     // Buildar imagen Docker
     stage('Build Docker Image') {
       steps {
