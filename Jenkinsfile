@@ -1,5 +1,8 @@
 pipeline {
   agent any
+  parameters {
+    booleanParam(name: 'PUBLISH_GPR', defaultValue: false, description: 'Deploy a GitHub Packages (requiere credenciales)')
+  }
   environment {
     IMAGE_NAME = "demo-ci-cd:latest"
     CONTAINER_PORT = "8081"
@@ -35,10 +38,13 @@ pipeline {
         bat 'mvn -B -DskipTests package'
       }
     }
-    // Subir artifact a Github Packages
+    // Subir artifact a Github Packages (opcional)
     stage('Publish Artifact') {
+      when { expression { return params.PUBLISH_GPR } }
       steps {
-        bat 'mvn -B -Pgithub "-Dgpr.owner=chapaxD" "-Dgpr.repo=spring-docker" -DskipTests deploy'
+        withCredentials([usernamePassword(credentialsId: 'gpr', usernameVariable: 'GITHUB_USERNAME', passwordVariable: 'GITHUB_TOKEN')]) {
+          bat 'mvn -B -Pgithub "-Dgpr.owner=chapaxD" "-Dgpr.repo=spring-docker" -DskipTests deploy'
+        }
       }
     }
     // Buildar imagen Docker
