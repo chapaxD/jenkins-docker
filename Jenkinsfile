@@ -10,9 +10,35 @@ pipeline {
         checkout scm
       }
     }
-    stage('Build & Test') {
+    stage('Build & Unit Tests') {
       steps {
-        bat 'mvn -B clean package'
+        bat 'mvn -B -Dmaven.test.failure.ignore=false clean test'
+      }
+    }
+    stage('Checkstyle') {
+      steps {
+        bat 'mvn -B -q checkstyle:check checkstyle:checkstyle'
+      }
+      post {
+        always {
+          recordIssues enabledForFailure: true, tools: [checkStyle(pattern: '**/target/checkstyle-result.xml')]
+        }
+      }
+    }
+    stage('JaCoCo Coverage') {
+      steps {
+        bat 'mvn -B -q verify'
+      }
+      post {
+        always {
+          jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java', inclusionPattern: '**/*.class', exclusionPattern: ''
+          publishHTML target: [allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: 'target/site/jacoco', reportFiles: 'index.html', reportName: 'JaCoCo Report']
+        }
+      }
+    }
+    stage('Package .jar') {
+      steps {
+        bat 'mvn -B -DskipTests package'
       }
     }
     // // Subir artifact a Github Packages
@@ -38,6 +64,23 @@ pipeline {
         
         // Verificar estado
         bat 'docker ps | findstr demo-ci-cd'
+      }
+    }
+    stage('Deploy to Staging via SSH') {
+      when { expression { return env.STAGING_HOST != null } }
+      steps {
+        withCredentials([sshUserPrivateKey(credentialsId: 'staging_ssh_key', keyFileVariable: 'KEYFILE', usernameVariable: 'SSHUSER'), string(credentialsId: 'staging_host', variable: 'STAGING_HOST')]) {
+          bat 'pscp -i %KEYFILE% -batch target\\*.jar %SSHUSER%@%STAGING_HOST%:/opt/apps/demo/demo.jar'
+          bat 'plink -i %KEYFILE% -batch %SSHUSER%@%STAGING_HOST% "sudo systemctl restart demo.service || (pkill -f demo.jar; nohup java -jar /opt/apps/demo/demo.jar >/opt/apps/demo/app.log 2>&1 &)"'
+        }
+      }
+    }
+    stage('Staging Health Check') {
+      when { expression { return env.STAGING_HOST != null } }
+      steps {
+        withCredentials([string(credentialsId: 'staging_host', variable: 'STAGING_HOST')]) {
+          bat 'curl -fsS http://%STAGING_HOST%:8080/actuator/health | findstr UP'
+        }
       }
     }
   }
