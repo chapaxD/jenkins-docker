@@ -19,11 +19,6 @@ pipeline {
       steps {
         bat 'mvn -B -q checkstyle:check checkstyle:checkstyle'
       }
-      post {
-        always {
-          recordIssues enabledForFailure: true, tools: [checkStyle(pattern: '**/target/checkstyle-result.xml')]
-        }
-      }
     }
     stage('JaCoCo Coverage') {
       steps {
