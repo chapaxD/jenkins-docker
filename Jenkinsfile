@@ -26,8 +26,7 @@ pipeline {
       }
       post {
         always {
-          jacoco execPattern: '**/target/jacoco.exec', classPattern: '**/target/classes', sourcePattern: '**/src/main/java', inclusionPattern: '**/*.class', exclusionPattern: ''
-          publishHTML target: [allowMissing: true, alwaysLinkToLastBuild: true, keepAll: true, reportDir: 'target/site/jacoco', reportFiles: 'index.html', reportName: 'JaCoCo Report']
+          archiveArtifacts artifacts: 'target/site/jacoco/**', fingerprint: true
         }
       }
     }
